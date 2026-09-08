@@ -1,0 +1,8 @@
+numpy
+pandas
+seaborn
+scikit-learn
+mlflow
+xgboost
+fastapi[standard]
+pydantic
