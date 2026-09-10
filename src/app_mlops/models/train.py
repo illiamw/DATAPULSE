@@ -178,35 +178,138 @@ def train_model(
         for metric, value in metrics.items():
             print(f"{metric}: {value:.4f}")
 
-def run_experiment(model : dict= None):
+
+def run_experiment(models: dict = None):
 
     file_path = "data/serving/industrial_data_serving.csv"
-    
+
     df = load_data(file_path)
 
     print(f"Schema of the loaded DataFrame:\n{df.dtypes}\n")
 
     X_train, X_test, y_train, y_test = data_split(df)
 
-    if model is None:
-        model = {
-                
-                "KNN": KNeighborsClassifier(
-                    n_neighbors=5,
-                    weights="distance"
-                )
-                }
+    # Configuração padrão
+    if models is None:
+        models = {
+            "GaussianNB_v1": {
+                "model": "GaussianNB",
+                "parameters": {}
+            },
 
-    for model_name, model in models.items():
-    
-            train_model(
-                model=model,
-                model_name=model_name,
-                X_train=X_train,
-                X_test=X_test,
-                y_train=y_train,
-                y_test=y_test
+            "KNN_v1": {
+                "model": "KNeighborsClassifier",
+                "parameters": {
+                    "n_neighbors": 5,
+                    "weights": "distance"
+                }
+            },
+
+            "SVM_v1": {
+                "model": "SVC",
+                "parameters": {
+                    "C": 1.0,
+                    "kernel": "rbf",
+                    "probability": True,
+                    "random_state": 42
+                }
+            },
+
+            "GradientBoosting_v1": {
+                "model": "GradientBoostingClassifier",
+                "parameters": {
+                    "n_estimators": 200,
+                    "learning_rate": 0.05,
+                    "max_depth": 5,
+                    "random_state": 42
+                }
+            },
+
+            "RandomForest_v1": {
+                "model": "RandomForestClassifier",
+                "parameters": {
+                    "n_estimators": 300,
+                    "max_depth": 10,
+                    "min_samples_split": 10,
+                    "random_state": 42,
+                    "n_jobs": -1
+                }
+            },
+
+            "LogisticRegression_v1": {
+                "model": "LogisticRegression",
+                "parameters": {
+                    "max_iter": 10000,
+                    "C": 1.0
+                }
+            },
+
+            "DecisionTree_v1": {
+                "model": "DecisionTreeClassifier",
+                "parameters": {
+                    "max_depth": 5,
+                    "min_samples_split": 10,
+                    "random_state": 42
+                }
+            },
+
+            "XGBoost_v1": {
+                "model": "XGBClassifier",
+                "parameters": {
+                    "n_estimators": 300,
+                    "learning_rate": 0.1,
+                    "max_depth": 6,
+                    "random_state": 42,
+                    "n_jobs": -1,
+                    "eval_metric": "logloss"
+                }
+            }
+        }
+
+    # Registry dos modelos disponíveis
+    model_registry = {
+        "GaussianNB": GaussianNB,
+        "KNeighborsClassifier": KNeighborsClassifier,
+        "SVC": SVC,
+        "GradientBoostingClassifier": GradientBoostingClassifier,
+        "RandomForestClassifier": RandomForestClassifier,
+        "LogisticRegression": LogisticRegression,
+        "DecisionTreeClassifier": DecisionTreeClassifier,
+        "XGBClassifier": XGBClassifier
+    }
+
+    # Executa cada modelo
+    for model_name, model_config in models.items():
+
+        model_type = model_config["model"]
+        parameters = model_config.get("parameters", {})
+
+        # Verifica se o modelo existe no registry
+        if model_type not in model_registry:
+            raise ValueError(
+                f"Modelo '{model_type}' não está disponível no registry."
             )
+
+        # Recupera a classe
+        model_class = model_registry[model_type]
+
+        # Cria a instância
+        model = model_class(**parameters)
+
+        print(f"\n{'=' * 60}")
+        print(f"Training model: {model_name}")
+        print(f"Model type: {model_type}")
+        print(f"Parameters: {parameters}")
+        print(f"{'=' * 60}")
+
+        train_model(
+            model=model,
+            model_name=model_name,
+            X_train=X_train,
+            X_test=X_test,
+            y_train=y_train,
+            y_test=y_test
+        )
 
 def main():
     file_path = "data/serving/industrial_data_serving.csv"
@@ -276,4 +379,14 @@ def main():
 
 if __name__ == "__main__":
 
-    main()
+    teste = {
+    "KNN_v1": {
+        "model": "KNeighborsClassifier",
+        "parameters": {
+            "n_neighbors": 5,
+            "weights": "distance"
+        }
+    }
+}
+
+    run_experiment(teste)
