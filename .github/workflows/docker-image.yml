@@ -1,4 +1,3 @@
-```yaml
 name: MLOPS DATAPULSE - Docker Compose CI
 
 on:
@@ -113,4 +112,4 @@ jobs:
         if: always()
         run: |
           docker compose down -v
-```
+
