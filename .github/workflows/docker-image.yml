@@ -113,3 +113,11 @@ jobs:
         run: |
           docker compose down -v
 
+      # ==========================================
+      # PUSH COM DOCKER COMPOSE
+      # ==========================================
+
+      - name: Push Docker Compose images
+        run: |
+          docker compose push
+
