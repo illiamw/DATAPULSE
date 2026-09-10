@@ -1,6 +1,33 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from src.serving.inference import predict  # Core ML inference logic
+import pandas as pd
+
+import sys
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "industrial_data_raw.csv"
+SERVING_DATA_PATH = PROJECT_ROOT / "data" / "serving" / "industrial_data_serving.csv"
+
+print(f"PROJECT_ROOT: {PROJECT_ROOT}")
+print(f"RAW_DATA_PATH: {RAW_DATA_PATH}")
+
+
+SRC_ROOT = Path(__file__).resolve().parents[1]
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+from serving.inference import predict  # Core ML inference logic
+from data.load_data import load_data  # Core ML inference logic
+
+
+Script_ROOT = Path(__file__).resolve().parents[2]
+if str(Script_ROOT) not in sys.path:
+    sys.path.insert(0, str(Script_ROOT))
+
+from scripts.run_data_transform import main as transf_pipeline  # Pipeline execution for data processing
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -27,33 +54,27 @@ class CustomerData(BaseModel):
     This schema defines the exact 18 features required for churn prediction.
     All features match the original dataset structure for consistency.
     """
-    # Demographics
-    gender: str                # "Male" or "Female"
-    Partner: str               # "Yes" or "No" - has partner
-    Dependents: str            # "Yes" or "No" - has dependents
-    
-    # Phone services
-    PhoneService: str          # "Yes" or "No"
-    MultipleLines: str         # "Yes", "No", or "No phone service"
-    
-    # Internet services  
-    InternetService: str       # "DSL", "Fiber optic", or "No"
-    OnlineSecurity: str        # "Yes", "No", or "No internet service"
-    OnlineBackup: str          # "Yes", "No", or "No internet service"
-    DeviceProtection: str      # "Yes", "No", or "No internet service"
-    TechSupport: str           # "Yes", "No", or "No internet service"
-    StreamingTV: str           # "Yes", "No", or "No internet service"
-    StreamingMovies: str       # "Yes", "No", or "No internet service"
-    
-    # Account information
-    Contract: str              # "Month-to-month", "One year", "Two year"
-    PaperlessBilling: str      # "Yes" or "No"
-    PaymentMethod: str         # "Electronic check", "Mailed check", etc.
-    
-    # Numeric features
-    tenure: int                # Number of months with company
-    MonthlyCharges: float      # Monthly charges in dollars
-    TotalCharges: float        # Total charges to date
+    registro_id: str
+    data_registro: str
+    linha_producao: str
+    turno: str
+    maquina: str
+    idade_maquina_anos: int
+    temperatura_valor: float
+    unidade_temperatura: str
+    pressao_valor: float
+    unidade_pressao: str
+    vibracao_motor_mm_s: float
+    velocidade_esteira_m_min: float
+    umidade_pct: float
+    tamanho_lote: int
+    tempo_setup_min: float
+    paradas_nao_planejadas: int
+    taxa_defeitos_pct: float
+    energia_sensor_b_kwh: float
+    codigo_campanha: str
+    ruido_aleatorio: float
+    consumo_energia_kwh: float
 
 # === MAIN PREDICTION API ENDPOINT ===
 @app.post("/predict")
@@ -71,8 +92,35 @@ def get_prediction(data: CustomerData):
     - {"error": "error_message"} if prediction fails
     """
     try:
-        # Convert Pydantic model to dict and call inference pipeline
-        result = predict(data.dict())
+        # Carrega os dados históricos
+        raw_data = load_data(
+            RAW_DATA_PATH
+        )
+    
+        # Adiciona o registro de teste
+        raw_data = pd.concat(
+            [
+                raw_data,
+                pd.DataFrame([data.dict()])  # Convert Pydantic model to DataFrame
+            ],
+            ignore_index=True
+        )
+    
+        # Aplica o pipeline de transformação
+        transformed_data = transf_pipeline(
+            df=raw_data
+        )
+    
+        print("###########################################################")
+    
+        # Mantém a última linha como DataFrame
+        transformed_data = transformed_data.iloc[[-1]]
+    
+        print("Dados transformados:")
+        print(transformed_data)  # Optional: For debugging in development
+        result = predict(
+                df=transformed_data
+            )
         return {"prediction": result}
     except Exception as e:
         # Return error details for debugging (consider logging in production)

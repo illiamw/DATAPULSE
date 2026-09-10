@@ -178,6 +178,8 @@ if __name__ == "__main__":
 
     df = load_data(file_path)
 
+    print(f"Schema of the loaded DataFrame:\n{df.dtypes}\n")
+
     X_train, X_test, y_train, y_test = data_split(df)
 
     models = {

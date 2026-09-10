@@ -96,6 +96,16 @@ try:
                 getattr(sklearn_model, "feature_names_in_", [])
             )
 
+        if not FEATURE_COLS:
+            project_root = Path(__file__).resolve().parents[2]
+            serving_file = project_root / "data" / "serving" / "industrial_data_serving.csv"
+            if serving_file.is_file():
+                FEATURE_COLS = [
+                    column
+                    for column in pd.read_csv(serving_file, nrows=0).columns
+                    if column not in {"falha_24h", "data_registro_pad"}
+                ]
+
     if not FEATURE_COLS:
         raise FileNotFoundError(
             "feature_columns.txt was not found and the MLflow model has "
@@ -104,6 +114,7 @@ try:
         )
 
     print(f"✅ Loaded {len(FEATURE_COLS)} feature columns from training")
+    print(f"Feature columns: {FEATURE_COLS}")
 except Exception as e:
     raise Exception(f"Failed to load feature columns: {e}")
 
@@ -112,10 +123,10 @@ except Exception as e:
 # Any changes here will cause train/serve skew and degrade model performance
 
 
+IGNORE_COLS = ["falha_24h", "data_registro_pad"]  # Columns to ignore during prediction
 
 
-
-def predict(input_dict: dict) -> str:
+def predict(df = None, input_dict: dict = None) -> str:
     """
     Main prediction function for customer churn inference.
     
@@ -146,12 +157,16 @@ def predict(input_dict: dict) -> str:
         >>> predict(customer_data)
         "Likely to churn"
     """
-    
-    # === STEP 1: Convert Input to DataFrame ===
-    # Create single-row DataFrame for pandas transformations
-    df = pd.DataFrame([input_dict])
+    if df is None:
+        # === STEP 1: Convert Input to DataFrame ===
+        # Create single-row DataFrame for pandas transformations
+        df = pd.DataFrame([input_dict])
 
-    
+    df = df.drop(columns=IGNORE_COLS, errors="ignore")
+    df = df.reindex(columns=FEATURE_COLS, fill_value=0)
+    print(f"Input DataFrame for prediction:\n{df}")
+    print(f"Expected feature columns: {FEATURE_COLS}")
+    print(f"Schema: {df.dtypes}")
     # === STEP 3: Generate Model Prediction ===
     # Call the loaded MLflow model for inference
     # The model returns predictions in various formats depending on the ML library

@@ -219,14 +219,14 @@ def gerate_data(file_path: str) -> pd.DataFrame:
     return pd.read_csv(file_path)
 
 
-def main():
+def main(file_path):
     """
     Main function to generate synthetic industrial data.
     """
-    file_path = "data/raw/industrial_data_raw.csv"
+    
     gerate_data(file_path)
     print(f"Data generated and saved to {file_path}")
 
 
 if __name__ == "__main__":
-    main()
+    main(file_path = "data/raw/industrial_data_raw.csv")

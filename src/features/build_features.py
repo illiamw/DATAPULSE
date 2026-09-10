@@ -8,7 +8,7 @@ import numpy as np
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.data.load_data import load_data
+from data.load_data import load_data
 
 def data_outliers(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -324,18 +324,23 @@ def data_numeric_to_numeric(df: pd.DataFrame) -> pd.DataFrame:
     return df_transformado
 
 
-def main():
-    # Exemplo de uso das funções
-    file_path = "data/silver/industrial_data_silver.csv"  # Substitua pelo caminho do seu arquivo CSV
-    df = load_data(file_path)
+def main(df=None, file_path=None) -> None:
+    """
+    Main function to preprocess the dataset.
+    """
+    if df is None:
+        if file_path is None:
+            file_path = "data/raw/industrial_data_raw.csv"
+            # Load data
+        df = load_data(file_path)
 
     df = data_outliers(df)
     df = data_colinearity(df)
     df = data_symbolic_to_numeric(df)
     df = data_numeric_to_numeric(df)
 
-    # Salvar o DataFrame final em um novo arquivo CSV
-    df.to_csv("data/serving/industrial_data_serving.csv", index=False)  # Substitua pelo caminho desejado
+    return df
+
 
 if __name__ == "__main__":
     main()

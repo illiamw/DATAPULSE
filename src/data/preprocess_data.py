@@ -3,7 +3,7 @@ import os
 # Bibliotecas básicas
 import numpy as np
 from datetime import datetime
-from load_data import load_data
+from .load_data import load_data
 
 def padronizar_data(x):
 
@@ -448,14 +448,15 @@ def data_missing_values(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-def main():
+def main(df=None, file_path=None) -> None:
     """
     Main function to preprocess the dataset.
     """
-
-    file_path = "data/raw/industrial_data_raw.csv"
-    # Load data
-    df = load_data(file_path)
+    if df is None:
+        if file_path is None:
+            file_path = "data/raw/industrial_data_raw.csv"
+            # Load data
+        df = load_data(file_path)
 
     # Typing data
     df = typing_data(df, file_path)
@@ -466,14 +467,7 @@ def main():
     # Handle missing values
     df = data_missing_values(df)
 
-    file_path = "data/silver/industrial_data_silver.csv"
-    if not os.path.exists(file_path):
-        pasta_destino = os.path.dirname(file_path)
-        if pasta_destino:
-            os.makedirs(pasta_destino, exist_ok=True)
-        df.to_csv(file_path, index=False)
-
-    print(f"Data generated and saved to {file_path}")
+    return df
 
 
 if __name__ == "__main__":
