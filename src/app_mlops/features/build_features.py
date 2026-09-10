@@ -8,7 +8,7 @@ import numpy as np
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from data.load_data import load_data
+from app_mlops.data.load_data import load_data
 
 def data_outliers(df: pd.DataFrame) -> pd.DataFrame:
     """

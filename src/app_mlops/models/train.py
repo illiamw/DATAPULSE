@@ -27,7 +27,7 @@ from sklearn.model_selection import train_test_split
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.data.load_data import load_data
+from app_mlops.data.load_data import load_data
 
 
 mlflow.set_experiment("previsao_falha")
@@ -69,8 +69,13 @@ def train_model(
     y_train,
     y_test
 ):
+    
+    
 
     with mlflow.start_run(run_name=model_name):
+        print(f"\n{'=' * 40}")
+        print(f"iNINCIANDO Modelo: {model_name}")
+        print(f"{'=' * 40}")
 
         # ==========================
         # Tags
@@ -183,7 +188,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = data_split(df)
 
     models = {
-        "GaussianNB": GaussianNB(),
+        
         "KNN": KNeighborsClassifier(
             n_neighbors=5,
             weights="distance"
@@ -225,7 +230,7 @@ if __name__ == "__main__":
             random_state=42,
             n_jobs=-1,
             eval_metric="logloss"
-        )
+        ),"GaussianNB": GaussianNB()
     }
 
     for model_name, model in models.items():
