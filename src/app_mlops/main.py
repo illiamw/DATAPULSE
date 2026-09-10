@@ -67,6 +67,7 @@ if str(PROJECT_ROOT) not in sys.path:
 # ============================================================
 
 from app_mlops.serving.inference import predict
+from app_mlops.models.train import run_experiment
 from app_mlops.data.load_data import load_data
 
 from scripts.run_data_transform import main as transf_pipeline
@@ -130,6 +131,7 @@ class CustomerData(BaseModel):
     codigo_campanha: str
     ruido_aleatorio: float
     consumo_energia_kwh: float
+
 
 
 # ============================================================
@@ -199,3 +201,16 @@ def get_prediction(data: CustomerData):
         return {
             "error": str(e)
         }
+
+
+# ============================================================
+# Experiment execution endpoint
+# ============================================================
+
+@app.post("/experiment")
+def run_experiment(model: dict = None):
+    try:
+        run_experiment(model)
+        return {"status": "Experiment executed successfully."} 
+    except Exception as e:
+        return {"error": str(e)}

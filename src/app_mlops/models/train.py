@@ -176,6 +176,37 @@ def train_model(
         for metric, value in metrics.items():
             print(f"{metric}: {value:.4f}")
 
+def run_experiment(model : dict= None):
+
+    file_path = "data/serving/industrial_data_serving.csv"
+    
+    df = load_data(file_path)
+
+    print(f"Schema of the loaded DataFrame:\n{df.dtypes}\n")
+
+    X_train, X_test, y_train, y_test = data_split(df)
+
+    if model is None:
+        model = {
+                
+                "KNN": KNeighborsClassifier(
+                    n_neighbors=5,
+                    weights="distance"
+                )
+                }
+
+    for model_name, model in models.items():
+    
+            train_model(
+                model=model,
+                model_name=model_name,
+                X_train=X_train,
+                X_test=X_test,
+                y_train=y_train,
+                y_test=y_test
+            )
+
+
 
 if __name__ == "__main__":
 
