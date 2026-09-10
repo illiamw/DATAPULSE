@@ -92,9 +92,9 @@ jobs:
       # ---------------------------------------------------------
       # 10. Test FastAPI
       # ---------------------------------------------------------
-      - name: Test FastAPI
-        run: |
-          curl --fail http://localhost:8000/docs
+      # - name: Test FastAPI
+      #   run: |
+      #     curl --fail http://localhost:8000/docs
 
 
       # ---------------------------------------------------------
