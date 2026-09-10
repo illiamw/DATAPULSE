@@ -30,9 +30,7 @@ if __package__ in (None, ""):
 from app_mlops.data.load_data import load_data
 
 
-mlflow.set_experiment("PrevisaoFalha24h")
 
-mlflow.set_tracking_uri("http://localhost:5000")
 
 def data_split(
         df: pd.DataFrame | None = None,
@@ -69,6 +67,10 @@ def train_model(
     y_train,
     y_test
 ):
+
+    mlflow.set_experiment("PrevisaoFalha24h")
+
+    mlflow.set_tracking_uri("http://localhost:5000")
     
     
 
