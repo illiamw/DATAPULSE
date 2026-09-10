@@ -14,4 +14,4 @@ COPY src ./src
 
 EXPOSE 8000
 
-CMD ["uvicorn", "src.app_mlops.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m","uvicorn", "src.app_mlops.main:app", "--host", "0.0.0.0", "--port", "8000"]
