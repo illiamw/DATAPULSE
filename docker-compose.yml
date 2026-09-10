@@ -21,9 +21,9 @@ services:
       - mlflow
 
     volumes:
-      - ./data:/app/data
-      - ./src:/app/src
-      - ./scripts:/app/scripts
+      - ./data:/app_mlops/data
+      - ./src:/app_mlops/src
+      - ./scripts:/app_mlops/scripts
 
     restart: unless-stopped
 
@@ -40,6 +40,12 @@ services:
     ports:
       - "5000:5000"
 
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+
+    depends_on:
+      - postgres
+
     volumes:
       - ./mlruns:/mlruns
 
@@ -47,7 +53,38 @@ services:
       mlflow server
       --host 0.0.0.0
       --port 5000
-      --backend-store-uri sqlite:////mlruns/mlflow.db
+      --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow
       --default-artifact-root /mlruns
 
     restart: unless-stopped
+
+
+  # ============================================================
+  # POSTGRESQL
+  # ============================================================
+
+  postgres:
+    image: postgres:16
+
+    container_name: datapulse-postgres
+
+    ports:
+      - "5432:5432"
+
+    environment:
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflow
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    restart: unless-stopped
+
+
+# ============================================================
+# VOLUMES
+# ============================================================
+
+volumes:
+  postgres_data:
