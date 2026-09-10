@@ -30,7 +30,7 @@ if __package__ in (None, ""):
 from app_mlops.data.load_data import load_data
 
 
-mlflow.set_experiment("PrevisaoFalha")
+mlflow.set_experiment("PrevisaoFalha24h")
 
 mlflow.set_tracking_uri("http://localhost:5000")
 
@@ -206,12 +206,9 @@ def run_experiment(model : dict= None):
                 y_test=y_test
             )
 
-
-
-if __name__ == "__main__":
-
+def main():
     file_path = "data/serving/industrial_data_serving.csv"
-
+    
     df = load_data(file_path)
 
     print(f"Schema of the loaded DataFrame:\n{df.dtypes}\n")
@@ -219,7 +216,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = data_split(df)
 
     models = {
-        
+        "GaussianNB": GaussianNB(),
         "KNN": KNeighborsClassifier(
             n_neighbors=5,
             weights="distance"
@@ -261,7 +258,7 @@ if __name__ == "__main__":
             random_state=42,
             n_jobs=-1,
             eval_metric="logloss"
-        ),"GaussianNB": GaussianNB()
+        )
     }
 
     for model_name, model in models.items():
@@ -274,3 +271,7 @@ if __name__ == "__main__":
             y_train=y_train,
             y_test=y_test
         )
+
+if __name__ == "__main__":
+
+    main()

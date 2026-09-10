@@ -67,7 +67,8 @@ if str(PROJECT_ROOT) not in sys.path:
 # ============================================================
 
 from app_mlops.serving.inference import predict
-from app_mlops.models.train import run_experiment
+from app_mlops.models.train import run_experiment, main
+main() # Inicia o treinamento do modelo ao iniciar a aplicação
 from app_mlops.data.load_data import load_data
 
 from scripts.run_data_transform import main as transf_pipeline
