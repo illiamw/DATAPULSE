@@ -30,7 +30,7 @@ if __package__ in (None, ""):
 from app_mlops.data.load_data import load_data
 
 
-mlflow.set_experiment("previsao_falha")
+mlflow.set_experiment("PrevisaoFalha")
 
 mlflow.set_tracking_uri("http://localhost:5000")
 
