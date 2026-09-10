@@ -27,4 +27,4 @@ jobs:
         context: .
         file: ./Dockerfile  # change if your Dockerfile has a different name or path
         push: true
-        tags: illiam/mlops_datapulse:latest
+        tags: hurlok/mlops_datapulse:latest
