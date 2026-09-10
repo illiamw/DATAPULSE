@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Logs aparecem imediatamente
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app
+WORKDIR /app_mlops
 
 COPY requirements.txt .
 
@@ -21,4 +21,4 @@ COPY . .
 EXPOSE 8000
 
 # Inicia FastAPI
-CMD ["python","-m","uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python","-m","uvicorn", "src.api.main:app_mlops", "--host", "0.0.0.0", "--port", "8000"]
