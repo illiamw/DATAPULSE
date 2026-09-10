@@ -1,24 +1,17 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
-# Evita arquivos .pyc
+WORKDIR /app
+
 ENV PYTHONDONTWRITEBYTECODE=1
-
-# Logs aparecem imediatamente
 ENV PYTHONUNBUFFERED=1
-
-WORKDIR /app_mlops
 
 COPY requirements.txt .
 
-RUN pip install --upgrade pip\
-    && pip install --no-cache-dir -r requirements.txt\
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY src ./src
 
-
-# Porta da API
 EXPOSE 8000
 
-# Inicia FastAPI
-CMD ["python","-m","uvicorn",  "src.app_mlops.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.app_mlops.main:app", "--host", "0.0.0.0", "--port", "8000"]

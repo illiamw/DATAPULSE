@@ -1,90 +1,111 @@
 services:
 
-  # ============================================================
-  # FASTAPI
-  # ============================================================
-
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-
-    container_name: datapulse-api
-
-    ports:
-      - "8000:8000"
-
-    environment:
-      MLFLOW_TRACKING_URI: http://mlflow:5000
-
-    depends_on:
-      - mlflow
-
-    volumes:
-      - ./data:/app_mlops/data
-      - ./src:/app_mlops/src
-      - ./scripts:/app_mlops/scripts
-
-    restart: unless-stopped
-
-
-  # ============================================================
-  # MLFLOW
-  # ============================================================
-
-  mlflow:
-    image: ghcr.io/mlflow/mlflow:latest
-
-    container_name: datapulse-mlflow
-
-    ports:
-      - "5000:5000"
-
-    environment:
-      MLFLOW_TRACKING_URI: http://mlflow:5000
-
-    depends_on:
-      - postgres
-
-    volumes:
-      - ./mlruns:/mlruns
-
-    command: >
-      mlflow server
-      --host 0.0.0.0
-      --port 5000
-      --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow
-      --default-artifact-root /mlruns
-
-    restart: unless-stopped
-
-
-  # ============================================================
+  # ==========================================
   # POSTGRESQL
-  # ============================================================
-
+  # ==========================================
   postgres:
     image: postgres:16
-
     container_name: datapulse-postgres
-
-    ports:
-      - "5432:5432"
 
     environment:
       POSTGRES_USER: mlflow
       POSTGRES_PASSWORD: mlflow
       POSTGRES_DB: mlflow
 
+    ports:
+      - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlflow -d mlflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - datapulse-network
 
 
-# ============================================================
+  # ==========================================
+  # MLFLOW
+  # ==========================================
+  mlflow:
+    image: python:3.11-slim
+    container_name: datapulse-mlflow
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    working_dir: /mlflow
+
+    command: >
+      sh -c "
+      pip install --no-cache-dir mlflow psycopg2-binary &&
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow
+      --default-artifact-root /mlflow/mlruns
+      "
+
+    ports:
+      - "5000:5000"
+
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+
+    networks:
+      - datapulse-network
+
+
+  # ==========================================
+  # FASTAPI
+  # ==========================================
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: datapulse-fastapi
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflow
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./src:/app/src
+
+    networks:
+      - datapulse-network
+
+
+# ==========================================
 # VOLUMES
-# ============================================================
-
+# ==========================================
 volumes:
   postgres_data:
+
+
+# ==========================================
+# NETWORK
+# ==========================================
+networks:
+  datapulse-network:
+    driver: bridge
