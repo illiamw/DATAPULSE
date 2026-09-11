@@ -20,93 +20,6 @@ import pandas as pd
 import mlflow
 
 
-# ============================================================
-# PROJECT PATHS
-# ============================================================
-
-# inference.py:
-#
-# MLOPS_DATAPULSE/
-# └── src/
-#     └── app_mlops/
-#         └── serving/
-#             └── inference.py
-#
-# parents[0] -> serving
-# parents[1] -> app_mlops
-# parents[2] -> src
-# parents[3] -> MLOPS_DATAPULSE
-
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-
-SRC_ROOT = PROJECT_ROOT / "src"
-
-DATA_ROOT = PROJECT_ROOT / "data"
-
-RAW_DATA_DIR = DATA_ROOT / "raw"
-
-SERVING_DATA_DIR = DATA_ROOT / "serving"
-
-MLRUNS_DIR = PROJECT_ROOT / "mlruns"
-
-
-# ============================================================
-# DATA PATHS
-# ============================================================
-
-RAW_DATA_PATH = (
-    RAW_DATA_DIR
-    / "industrial_data_raw.csv"
-)
-
-SERVING_DATA_PATH = (
-    SERVING_DATA_DIR
-    / "industrial_data_serving.csv"
-)
-
-
-# ============================================================
-# MODEL PATHS
-# ============================================================
-
-# Docker / production
-DOCKER_MODEL_DIR = Path("/app/model")
-
-
-# Local development
-LOCAL_MLRUNS_DIR = MLRUNS_DIR
-
-
-# ============================================================
-# DEBUG
-# ============================================================
-
-print("=" * 70)
-print("DataPulse - Inference Configuration")
-print("=" * 70)
-
-print(f"PROJECT_ROOT       : {PROJECT_ROOT}")
-print(f"SRC_ROOT           : {SRC_ROOT}")
-print(f"DATA_ROOT          : {DATA_ROOT}")
-print(f"RAW_DATA_PATH      : {RAW_DATA_PATH}")
-print(f"SERVING_DATA_PATH  : {SERVING_DATA_PATH}")
-print(f"MLRUNS_DIR         : {MLRUNS_DIR}")
-print(f"DOCKER_MODEL_DIR   : {DOCKER_MODEL_DIR}")
-
-print("=" * 70)
-
-
-# ============================================================
-# PYTHON PATH
-# ============================================================
-
-if str(SRC_ROOT) not in sys.path:
-    sys.path.insert(0, str(SRC_ROOT))
-
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-
 IGNORE_COLS = [
     "falha_24h",
     "data_registro_pad"
@@ -118,6 +31,7 @@ IGNORE_COLS = [
 # ============================================================
 
 def predict(
+    model_path=None,
     df=None,
     input_dict: dict = None
 ) -> str:
@@ -165,6 +79,7 @@ def predict(
     # 3. Guarantee exact training feature order
     # --------------------------------------------------------
 
+    FEATURE_COLS = df.columns.tolist()
     df = df.reindex(
         columns=FEATURE_COLS,
         fill_value=0
@@ -191,7 +106,7 @@ def predict(
     # --------------------------------------------------------
 
     try:
-
+        model = load_model(model_path)
         preds = model.predict(df)
 
         if hasattr(preds, "tolist"):
@@ -225,3 +140,37 @@ def predict(
     else:
 
         return "Sem Falha"
+
+
+import mlflow
+
+
+def load_model(model_id: str):
+
+    tracking_uri = os.getenv(
+            "MLFLOW_TRACKING_URI",
+            "http://localhost:5000"
+        )
+
+    mlflow.set_tracking_uri(
+        tracking_uri
+    )
+
+    model_uri = f"models:/{model_id}"
+
+    print(f"Model URI: {model_uri}")
+
+    model_info = mlflow.get_logged_model(model_id)
+
+    print("MODEL ID:", model_info.model_id)
+    print("MODEL NAME:", model_info.name)
+    print("MODEL URI:", model_info.model_uri)
+    print("ARTIFACT LOCATION:", model_info.artifact_location)
+    print("RUN ID:", model_info.source_run_id)
+    print("STATUS:", model_info.status)
+
+    model = mlflow.pyfunc.load_model(model_uri)
+
+    return model
+
+    

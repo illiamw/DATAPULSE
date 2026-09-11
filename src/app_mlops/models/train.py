@@ -203,74 +203,6 @@ def run_experiment(models: dict = None):
             "GaussianNB_v1": {
                 "model": "GaussianNB",
                 "parameters": {}
-            },
-
-            "KNN_v1": {
-                "model": "KNeighborsClassifier",
-                "parameters": {
-                    "n_neighbors": 5,
-                    "weights": "distance"
-                }
-            },
-
-            "SVM_v1": {
-                "model": "SVC",
-                "parameters": {
-                    "C": 1.0,
-                    "kernel": "rbf",
-                    "probability": True,
-                    "random_state": 42
-                }
-            },
-
-            "GradientBoosting_v1": {
-                "model": "GradientBoostingClassifier",
-                "parameters": {
-                    "n_estimators": 200,
-                    "learning_rate": 0.05,
-                    "max_depth": 5,
-                    "random_state": 42
-                }
-            },
-
-            "RandomForest_v1": {
-                "model": "RandomForestClassifier",
-                "parameters": {
-                    "n_estimators": 300,
-                    "max_depth": 10,
-                    "min_samples_split": 10,
-                    "random_state": 42,
-                    "n_jobs": -1
-                }
-            },
-
-            "LogisticRegression_v1": {
-                "model": "LogisticRegression",
-                "parameters": {
-                    "max_iter": 10000,
-                    "C": 1.0
-                }
-            },
-
-            "DecisionTree_v1": {
-                "model": "DecisionTreeClassifier",
-                "parameters": {
-                    "max_depth": 5,
-                    "min_samples_split": 10,
-                    "random_state": 42
-                }
-            },
-
-            "XGBoost_v1": {
-                "model": "XGBClassifier",
-                "parameters": {
-                    "n_estimators": 300,
-                    "learning_rate": 0.1,
-                    "max_depth": 6,
-                    "random_state": 42,
-                    "n_jobs": -1,
-                    "eval_metric": "logloss"
-                }
             }
         }
 
@@ -391,14 +323,19 @@ def run_allexperiments():
 if __name__ == "__main__":
 
     teste = {
-    "KNN_v1": {
-        "model": "KNeighborsClassifier",
+    "XGBoost_custon": {
+        "model": "XGBClassifier",
         "parameters": {
-            "n_neighbors": 5,
-            "weights": "distance"
+            "n_estimators": 300,
+            "learning_rate": 0.1,
+            "max_depth": 6,
+            "random_state": 42,
+            "n_jobs": -1,
+            "eval_metric": "logloss"
         }
     }
-}
+    }
+
 
     run_experiment(teste)
     run_allexperiments()

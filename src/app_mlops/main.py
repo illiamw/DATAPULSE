@@ -100,38 +100,39 @@ def root():
 # REQUEST DATA SCHEMA
 # ============================================================
 
-class CustomerData(BaseModel):
-    """
-    Schema for industrial failure prediction.
-    """
 
+class ModelRequest(BaseModel):
+    model_run: str
+
+
+class PredictionData(BaseModel):
     registro_id: str
     data_registro: str
     linha_producao: str
     turno: str
     maquina: str
     idade_maquina_anos: int
-
     temperatura_valor: float
     unidade_temperatura: str
-
     pressao_valor: float
     unidade_pressao: str
-
     vibracao_motor_mm_s: float
     velocidade_esteira_m_min: float
     umidade_pct: float
-
     tamanho_lote: int
     tempo_setup_min: float
     paradas_nao_planejadas: int
     taxa_defeitos_pct: float
-
     energia_sensor_b_kwh: float
     codigo_campanha: str
     ruido_aleatorio: float
     consumo_energia_kwh: float
+    falha_24h: int
 
+
+class PredictionRequest(BaseModel):
+    model: ModelRequest
+    data: PredictionData
 
 
 # ============================================================
@@ -139,7 +140,7 @@ class CustomerData(BaseModel):
 # ============================================================
 
 @app.post("/predict")
-def get_prediction(data: CustomerData):
+def get_prediction(requisition: PredictionRequest):
     """
     Receives industrial data and performs failure prediction.
     """
@@ -157,6 +158,8 @@ def get_prediction(data: CustomerData):
         # ----------------------------------------------------
         # 2. Add new prediction record
         # ----------------------------------------------------
+
+        data = requisition.data
 
         raw_data = pd.concat(
             [
@@ -189,6 +192,7 @@ def get_prediction(data: CustomerData):
         # ----------------------------------------------------
 
         result = predict(
+            model_path=requisition.model.model_run,
             df=transformed_data
         )
 
@@ -202,7 +206,132 @@ def get_prediction(data: CustomerData):
             "error": str(e)
         }
 
+# ============================================================
+# MODELS
+# ============================================================
 
+import os
+import mlflow
+from mlflow import MlflowClient
+from mlflow.entities import ViewType
+
+from fastapi import HTTPException
+
+
+@app.get("/models")
+def get_active_models():
+
+    try:
+
+        # ====================================================
+        # MLflow
+        # ====================================================
+
+        tracking_uri = os.getenv(
+            "MLFLOW_TRACKING_URI",
+            "http://mlflow:5000"
+        )
+
+        mlflow.set_tracking_uri(tracking_uri)
+
+        client = MlflowClient(
+            tracking_uri=tracking_uri
+        )
+
+        # ====================================================
+        # EXPERIMENT
+        # ====================================================
+
+        experiment_id = "2"
+
+        # ====================================================
+        # LOGGED MODELS
+        # ====================================================
+
+       # Apenas Runs ativas (não deletadas)
+        active_runs = client.search_runs(
+            experiment_ids=[experiment_id],
+            run_view_type=ViewType.ACTIVE_ONLY,
+            max_results=1000
+        )
+
+        active_run_ids = {
+            run.info.run_id
+            for run in active_runs
+        }
+
+        # Busca os Logged Models
+        models = client.search_logged_models(
+            experiment_ids=[experiment_id],
+            max_results=100,
+            order_by=[
+                {
+                    "field_name": "creation_time",
+                    "ascending": False
+                }
+            ]
+        )
+
+        # Apenas modelos cuja Run de origem está ativa
+        models = [
+            model
+            for model in models
+            if model.source_run_id in active_run_ids
+        ]
+        # ====================================================
+        # RESULT
+        # ====================================================
+
+        result = []
+
+        for model in models:
+
+            # -----------------------------------------------
+            # Métricas do LoggedModel
+            # -----------------------------------------------
+
+            metrics = {
+                metric.key: metric.value
+                for metric in model.metrics
+            }
+
+            result.append({
+                "model_id": model.model_id,
+                "model_name": model.name,
+                "run_id": model.source_run_id,
+                "status": model.status,
+                "accuracy": metrics.get("accuracy"),
+                "precision": metrics.get("precision"),
+                "f1": metrics.get("f1")
+            })
+
+        return {
+            "experiment": "PrevisaoFalha24h",
+            "experiment_id": experiment_id,
+            "total": len(result),
+            "models": result
+        }
+
+    except Exception as e:
+
+        print("========================================")
+        print("ERROR /models")
+        print("========================================")
+
+        print(
+            f"{type(e).__name__}: {e}"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                f"Erro ao consultar modelos MLflow: "
+                f"{type(e).__name__}: {e}"
+            )
+        )
+
+
+    
 # ============================================================
 # Experiment execution endpoint
 # ============================================================
@@ -222,6 +351,9 @@ def run_experiment_endpoint(model: dict = None):
     except Exception as e:
         return {"error": str(e)}
 
+# ============================================================
+# PIPELINE EXECUTION ENDPOINT
+# ============================================================
 
 @app.post("/pipeline")
 def run_pipeline_endpoint():

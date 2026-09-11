@@ -82,18 +82,18 @@ jobs:
       # # 8. TEST FASTAPI
       # # =========================================================
 
-      # - name: Test FastAPI
-      #   run: |
-      #     curl --fail http://localhost:8000
+      - name: Test FastAPI
+        run: |
+          curl --fail http://localhost:8000
 
 
       # # =========================================================
       # # 9. TEST MLFLOW
       # # =========================================================
 
-      # - name: Test MLflow
-      #   run: |
-      #     curl --fail http://localhost:5000
+      - name: Test MLflow
+        run: |
+          curl --fail http://localhost:5000
 
 
       # =========================================================
@@ -123,7 +123,7 @@ jobs:
 
       - name: Push Docker Compose images
         run: |
-          docker compose push
+          docker compose push hurlok/datapulse:last
 
 
       # =========================================================
