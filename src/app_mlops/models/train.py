@@ -29,7 +29,13 @@ if __package__ in (None, ""):
 
 from app_mlops.data.load_data import load_data
 
+import os
 
+
+MLFLOW_TRACKING_URI = os.getenv(
+    "MLFLOW_TRACKING_URI",
+    "http://localhost:5000"
+)
 
 
 def data_split(
@@ -70,9 +76,11 @@ def train_model(
 
     mlflow.set_experiment("PrevisaoFalha24h")
 
-    mlflow.set_tracking_uri("http://localhost:5000")
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     
-    
+    print(f"\n{'=' * 40}")
+    print(f"iNINCIANDO Modelo: {model_name}")
+    print(f"{'=' * 40}")
 
     with mlflow.start_run(run_name=model_name):
         print(f"\n{'=' * 40}")
@@ -311,7 +319,8 @@ def run_experiment(models: dict = None):
             y_test=y_test
         )
 
-def main():
+def run_allexperiments():
+    print("Starting model training...")
     file_path = "data/serving/industrial_data_serving.csv"
     
     df = load_data(file_path)
@@ -377,6 +386,8 @@ def main():
             y_test=y_test
         )
 
+    return {"status": "All experiments executed successfully."}
+
 if __name__ == "__main__":
 
     teste = {
@@ -390,3 +401,4 @@ if __name__ == "__main__":
 }
 
     run_experiment(teste)
+    run_allexperiments()

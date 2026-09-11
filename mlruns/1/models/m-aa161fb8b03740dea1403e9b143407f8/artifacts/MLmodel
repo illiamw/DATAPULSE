@@ -1,0 +1,23 @@
+artifact_path: file:C:/Users/will_/OneDrive/Documentos/GitHub/DATAPULSE/mlruns/1/models/m-aa161fb8b03740dea1403e9b143407f8/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.14.7
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.9.0
+    skops_trusted_types: null
+mlflow_version: 3.16.0
+model_id: m-aa161fb8b03740dea1403e9b143407f8
+model_size_bytes: 16218
+model_uuid: m-aa161fb8b03740dea1403e9b143407f8
+prompts: null
+run_id: 76677aaa62d94539a7ec0dabf6e80cee
+utc_time_created: '2026-09-11 19:24:05.908997'

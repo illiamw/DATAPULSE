@@ -67,11 +67,11 @@ if str(PROJECT_ROOT) not in sys.path:
 # ============================================================
 
 from app_mlops.serving.inference import predict
-from app_mlops.models.train import run_experiment
+import app_mlops.models.train as train
 from app_mlops.data.load_data import load_data
 
 from scripts.run_data_transform import main as transf_pipeline
-
+from scripts.run_pipeline import main as run_pipeline
 
 # ============================================================
 # FASTAPI
@@ -207,10 +207,36 @@ def get_prediction(data: CustomerData):
 # Experiment execution endpoint
 # ============================================================
 
-@app.post("/experiment")
-def run_experiment(model: dict = None):
+@app.post("/allexperiments")
+def run_allexperiments_endpoint():
     try:
-        run_experiment(model)
+        return train.run_allexperiments()
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/experiment")
+def run_experiment_endpoint(model: dict = None):
+    try:
+        train.run_experiment(model)
         return {"status": "Experiment executed successfully."} 
     except Exception as e:
         return {"error": str(e)}
+
+
+@app.post("/pipeline")
+def run_pipeline_endpoint():
+    try:
+        run_pipeline()
+        return {"status": "run_pipeline executed successfully."} 
+    except Exception as e:
+        return {"error": str(e)}
+
+if __name__ == "__main__":
+    print("Starting FastAPI server teste...")
+    print("train.run_allexperiments =", train.run_allexperiments)
+    print("module =", train.run_allexperiments.__module__)
+    print("name =", train.run_allexperiments.__name__)
+
+    train.run_allexperiments()
+
+    print("End teste...")
