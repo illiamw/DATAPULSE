@@ -93,7 +93,7 @@ jobs:
 
       - name: Test MLflow
         run: |
-          curl --fail http://localhost:5000
+          curl --fail http://mlflow:5000
 
 
       # =========================================================
