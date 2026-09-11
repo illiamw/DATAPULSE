@@ -115,7 +115,7 @@ jobs:
 
       - name: Push Docker Compose images
         run: |
-          docker compose push hurlok/datapulse:last
+          docker compose push hurlok/datapulse:latest
 
 
       # =========================================================
