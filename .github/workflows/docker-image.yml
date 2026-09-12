@@ -171,6 +171,9 @@ jobs:
 
             cd ~/DATAPULSE
 
+            echo "Updating repository..."
+            git pull origin main
+
             echo "Pulling latest Docker images..."
             docker compose pull
 
