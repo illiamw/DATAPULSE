@@ -167,6 +167,8 @@ jobs:
             echo "Starting DATAPULSE deployment"
             echo "========================================"
 
+            sudo su
+
             git clone https://github.com/illiamw/DATAPULSE.git
 
             cd ~/DATAPULSE
