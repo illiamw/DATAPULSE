@@ -93,7 +93,7 @@ def root():
     """
     Health check endpoint.
     """
-    return {"status": "ok_v03"}
+    return {"status": "ok_v04"}
 
 
 # ============================================================
