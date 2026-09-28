@@ -224,7 +224,6 @@ from mlflow.entities import ViewType
 
 from fastapi import HTTPException
 
-
 @app.get("/models")
 def get_active_models():
 
@@ -246,10 +245,49 @@ def get_active_models():
         )
 
         # ====================================================
-        # LOGGED MODELS
+        # TODOS OS EXPERIMENTOS ATIVOS
+        # ====================================================
+
+        experiments = client.search_experiments(
+            view_type=ViewType.ACTIVE_ONLY
+        )
+
+        experiment_ids = [
+            experiment.experiment_id
+            for experiment in experiments
+        ]
+
+        if not experiment_ids:
+            return {
+                "total": 0,
+                "models": []
+            }
+
+        # ====================================================
+        # RUNS ATIVAS DE TODOS OS EXPERIMENTOS
+        # ====================================================
+
+        active_run_ids = set()
+
+        for experiment_id in experiment_ids:
+
+            runs = client.search_runs(
+                experiment_ids=[experiment_id],
+                run_view_type=ViewType.ACTIVE_ONLY,
+                max_results=1000
+            )
+
+            active_run_ids.update(
+                run.info.run_id
+                for run in runs
+            )
+
+        # ====================================================
+        # LOGGED MODELS DE TODOS OS EXPERIMENTOS
         # ====================================================
 
         models = client.search_logged_models(
+            experiment_ids=experiment_ids,
             max_results=1000,
             order_by=[
                 {
@@ -260,16 +298,22 @@ def get_active_models():
         )
 
         # ====================================================
-        # RESULT
+        # FILTRAR MODELOS COM RUN ATIVA
+        # ====================================================
+
+        models = [
+            model
+            for model in models
+            if model.source_run_id in active_run_ids
+        ]
+
+        # ====================================================
+        # RESULTADO
         # ====================================================
 
         result = []
 
         for model in models:
-
-            # -----------------------------------------------
-            # Métricas do LoggedModel
-            # -----------------------------------------------
 
             metrics = {
                 metric.key: metric.value
@@ -281,10 +325,15 @@ def get_active_models():
                 "model_name": model.name,
                 "run_id": model.source_run_id,
                 "status": model.status,
+
                 "accuracy": metrics.get("accuracy"),
                 "precision": metrics.get("precision"),
                 "f1": metrics.get("f1")
             })
+
+        # ====================================================
+        # RESPONSE
+        # ====================================================
 
         return {
             "total": len(result),
