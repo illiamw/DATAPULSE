@@ -76,13 +76,20 @@ from scripts.run_pipeline import main as run_pipeline
 # ============================================================
 # FASTAPI
 # ============================================================
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="DataPulse - Industrial Prediction API",
     description="ML API for predicting failures in the industrial sector",
     version="1.0.0"
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Em produção, defina as URLs corretas
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ============================================================
 # HEALTH CHECK
