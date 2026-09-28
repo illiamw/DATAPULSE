@@ -223,7 +223,6 @@ from mlflow import MlflowClient
 from mlflow.entities import ViewType
 
 from fastapi import HTTPException
-
 @app.get("/models")
 def get_active_models():
 
@@ -269,6 +268,10 @@ def get_active_models():
 
         active_run_ids = set()
 
+        # Mapa:
+        # run_id -> nome da execução
+        run_names = {}
+
         for experiment_id in experiment_ids:
 
             runs = client.search_runs(
@@ -277,10 +280,13 @@ def get_active_models():
                 max_results=1000
             )
 
-            active_run_ids.update(
-                run.info.run_id
-                for run in runs
-            )
+            for run in runs:
+
+                run_id = run.info.run_id
+
+                active_run_ids.add(run_id)
+
+                run_names[run_id] = run.info.run_name
 
         # ====================================================
         # LOGGED MODELS DE TODOS OS EXPERIMENTOS
@@ -315,15 +321,41 @@ def get_active_models():
 
         for model in models:
 
+            # -----------------------------------------------
+            # Métricas
+            # -----------------------------------------------
+
             metrics = {
                 metric.key: metric.value
                 for metric in model.metrics
             }
 
+            # -----------------------------------------------
+            # Run ID
+            # -----------------------------------------------
+
+            run_id = model.source_run_id
+
+            # -----------------------------------------------
+            # Nome da execução
+            # -----------------------------------------------
+
+            run_name = run_names.get(
+                run_id,
+                "Unnamed"
+            )
+
+            # -----------------------------------------------
+            # Resultado
+            # -----------------------------------------------
+
             result.append({
                 "model_id": model.model_id,
                 "model_name": model.name,
-                "run_id": model.source_run_id,
+
+                "run_id": run_id,
+                "run_name": run_name,
+
                 "status": model.status,
 
                 "accuracy": metrics.get("accuracy"),
@@ -357,7 +389,6 @@ def get_active_models():
                 f"{type(e).__name__}: {e}"
             )
         )
-
     
 # ============================================================
 # Experiment execution endpoint
