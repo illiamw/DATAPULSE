@@ -231,7 +231,7 @@ def get_active_models():
     try:
 
         # ====================================================
-        # MLflow
+        # MLFLOW
         # ====================================================
 
         tracking_uri = os.getenv(
@@ -246,31 +246,11 @@ def get_active_models():
         )
 
         # ====================================================
-        # EXPERIMENT
-        # ====================================================
-
-        experiment_id = "8"
-
-        # ====================================================
         # LOGGED MODELS
         # ====================================================
 
-       # Apenas Runs ativas (não deletadas)
-        active_runs = client.search_runs(
-            experiment_ids=[experiment_id],
-            run_view_type=ViewType.ACTIVE_ONLY,
-            max_results=1000
-        )
-
-        active_run_ids = {
-            run.info.run_id
-            for run in active_runs
-        }
-
-        # Busca os Logged Models
         models = client.search_logged_models(
-            experiment_ids=[experiment_id],
-            max_results=100,
+            max_results=1000,
             order_by=[
                 {
                     "field_name": "creation_time",
@@ -279,12 +259,6 @@ def get_active_models():
             ]
         )
 
-        # Apenas modelos cuja Run de origem está ativa
-        models = [
-            model
-            for model in models
-            if model.source_run_id in active_run_ids
-        ]
         # ====================================================
         # RESULT
         # ====================================================
@@ -313,8 +287,6 @@ def get_active_models():
             })
 
         return {
-            "experiment": "PrevisaoFalha24h",
-            "experiment_id": experiment_id,
             "total": len(result),
             "models": result
         }
@@ -336,7 +308,6 @@ def get_active_models():
                 f"{type(e).__name__}: {e}"
             )
         )
-
 
     
 # ============================================================
