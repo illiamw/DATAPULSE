@@ -52,6 +52,7 @@ services:
       --port 5000
       --workers 1
       --allowed-hosts "*"
+      --cors-allowed-origins "*"
       --backend-store-uri postgresql+psycopg://mlflow:mlflow@postgres:5432/mlflow
       --default-artifact-root /mlflow/mlruns
       '
