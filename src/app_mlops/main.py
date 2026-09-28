@@ -354,7 +354,7 @@ def run_allexperiments_endpoint():
 def run_experiment_endpoint(model: dict = None):
     try:
         train.run_experiment(model)
-        return {"status": "Experiment executed successfully."} 
+        return {"status": "Experimento executado com sucesso."} 
     except Exception as e:
         return {"error": str(e)}
 
@@ -366,7 +366,7 @@ def run_experiment_endpoint(model: dict = None):
 def run_pipeline_endpoint():
     try:
         run_pipeline()
-        return {"status": "run_pipeline executed successfully."} 
+        return {"status": "Pipeline executada com sucesso."} 
     except Exception as e:
         return {"error": str(e)}
 

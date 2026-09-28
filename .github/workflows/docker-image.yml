@@ -151,7 +151,7 @@ jobs:
       # 1. DEPLOY VIA SSH
       # -------------------------------------------------------
 
-      - name: Deploy to AWS EC2
+      - name: Deploy to ORACLE
         uses: appleboy/ssh-action@v1.2.2
         with:
 
